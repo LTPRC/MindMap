@@ -1,0 +1,2047 @@
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style type="text/css">
+			div#header1 {height:150px;width:20px;float:left;}
+			div#header2 {height:250px;width:1000px;background-color:#3A57FF;float:left;}
+			div#header3 {height:25px;width:1000px;background-color:#3345DD;float:left;}
+			div#header4 {height:30px;width:1000px;background-color:#6677EE;float:left;}
+			div#header5 {height:70px;width:1000px;background-color:#DDDDDD;float:left;}
+		</style>
+		<script type="text/javascript">
+			var mainCanvas;
+            var mainCt;
+            var MAIN_CANVAS_WIDTH=1000;
+            var MAIN_CANVAS_HEIGHT=600;
+			var radius=250;
+			var currentRectX=new Array(37);
+			var currentRectY=new Array(37);
+
+            var startDragRectX=0;
+            var startDragRectY=0;
+            var startDragMouseX=0;
+            var startDragMouseY=0;
+            var RECT_WIDTH=80;
+            var RECT_HEIGHT=60;
+						
+			//Tuo Li's variables
+			var showGraphlet=false;
+			var graphletString=new Array(30);
+			var graphletStringA=new Array(30);
+			for(var i=0;i<=30;i++)
+			{
+				graphletString[i]="";
+				graphletStringA[i]="";
+			}
+			var cMethod=1;
+			var inputer=1;
+			var selector=1;
+			var showPhase=true;
+			var showAnswer=false;
+			var loadAnswer=false;
+			var showAnswerLine=false;
+			var total=0;
+			var pointer=0;
+			var selected=new Array(37);//Which element is selected to move and connect.
+			var toSelect=new Array(37);
+			var toSelect2=new Array(37);
+			for(var i=0;i<=36;i++)
+			{
+				selected[i]=false;
+				toSelect[i]=false;
+				toSelect2[i]=false;
+			}
+			var words=new Array(37);
+			//
+			for(var i=0;i<=36;i++)
+			{
+				words[i]="";
+			}
+			var connection = new Array(37);
+			var phase=new Array(37);
+			for (var i = 0; i <= 36; i++) {
+				connection[i] = new Array(37);
+				phase[i] = new Array(37);
+			}
+			//x[36+1][36+1] = false;
+			for (var i = 0; i <= 36; i++)
+			{
+				for (var j = 0; j <= 36; j++)
+				{
+					connection[i][i]=false;
+				}
+			}
+			
+			//Answer variables
+			var totalA=0;
+			var wordsA=new Array(37);
+			for(var i=0;i<=36;i++)
+			{
+				wordsA[i]="";
+			}
+			var connectionA = new Array(37);
+			var phaseA=new Array(37);
+			for (var i = 0; i <= 36; i++)
+			{
+				connectionA[i] = new Array(37);
+				phaseA[i] = new Array(37);
+				for (var j = 0; j <= 36; j++)
+				{
+					connectionA[i][i]=false;
+				}
+			}
+			
+            function canvasMouseDownHandler(event){
+                var canvasMouseX=event.layerX;
+                if(!canvasMouseX){
+                    canvasMouseX=event.x;
+                }
+                var canvasMouseY=event.layerY;
+                if(!canvasMouseY){
+                    canvasMouseY=event.y;
+                }
+				pointer=0;
+				for (var i = 1; i <= total; i++)
+				{
+					if(canvasMouseX>=currentRectX[i]&&canvasMouseX<=currentRectX[i]+RECT_WIDTH&&canvasMouseY>=currentRectY[i]&&canvasMouseY<=currentRectY[i]+RECT_HEIGHT)
+					{
+						pointer=i;
+					}
+				}
+				if(pointer!=0)
+				{
+					mainCanvas.onmousemove=canvasMouseMoveHandler;
+                    startDragMouseX=canvasMouseX;
+                    startDragMouseY=canvasMouseY;
+                    startDragRectX=currentRectX[pointer];
+                    startDragRectY=currentRectY[pointer];
+				}
+				else
+				{
+					for(var i=0;i<=36;i++)
+					selected[i]=false;
+				}
+				selected[pointer]=!selected[pointer];
+				drawAll();
+            }
+
+            function canvasMouseMoveHandler(event){
+				selected[pointer]=false;
+                var canvasMouseX=event.layerX;
+                if(!canvasMouseX){
+                    canvasMouseX=event.x;
+                }
+                var canvasMouseY=event.layerY;
+                if(!canvasMouseY){
+                    canvasMouseY=event.y;
+                }
+				currentRectX[pointer]=startDragRectX+canvasMouseX-startDragMouseX;
+                currentRectY[pointer]=startDragRectY+canvasMouseY-startDragMouseY;
+				drawAll();
+            }
+
+            function canvasMouseUpHandler(event){
+                mainCanvas.onmousemove=null;
+				switch(selector)
+				{
+					case 1:
+					defineConnection();
+					break;
+					case 2:
+					if(total>1&&pointer!=0)
+					removeElement(pointer);
+					else
+					selected[pointer]=!select[pointer];
+					break;
+					case 4:
+					for(var i=1;i<=total;i++)
+					{
+						connection[i][pointer]=true;
+						connection[pointer][i]=true;
+					}
+					selected[pointer]=false;
+					break;
+					case 5:
+					for(var i=1;i<=total;i++)
+					{
+						connection[i][pointer]=false;
+						connection[pointer][i]=false;
+					}
+					selected[pointer]=false;
+					break;
+					default:
+				}
+				drawAll();
+            }
+			
+			function EnterPress(e)
+			{
+				try{
+				var e = e || window.event;
+				if(e.keyCode == 13)inputData();
+				}catch(e){alert(e);}
+			}
+			
+			function loginWindow()
+			{
+				loginw=window.open('','','width=600,height=500');
+				loginw.document.write('<p>Welcome to the Mind-map Analyzing System!</p>&nbsp;&nbsp;&nbsp;&nbsp;Name:<input id="getName" type="text"><br/>Password:<input id="getPassword" type="password"><br/><button id="button11" onclick="window.close();">Login</button>');
+				loginw.focus();
+			}
+			
+			//Tuo Li's functions
+			
+			function changeInputer(index)
+			{
+				inputer=index;
+				if(index==1)
+				{
+					document.getElementById('button26').style.borderStyle='inset';
+					document.getElementById('button27').style.borderStyle='outset';
+				}
+				else
+				{
+					document.getElementById('button26').style.borderStyle='outset';
+					document.getElementById('button27').style.borderStyle='inset';
+				}
+			}
+			
+			function changeSelector(index)
+			{
+				document.getElementById('button21').style.borderStyle='outset';
+				document.getElementById('button22').style.borderStyle='outset';
+				document.getElementById('button23').style.borderStyle='outset';
+				document.getElementById('button24').style.borderStyle='outset';
+				document.getElementById('button25').style.borderStyle='outset';
+				switch(index)
+				{
+					case 1:document.getElementById('button21').style.borderStyle='inset';break;
+					case 2:document.getElementById('button22').style.borderStyle='inset';break;
+					case 3:document.getElementById('button23').style.borderStyle='inset';break;
+					case 4:document.getElementById('button24').style.borderStyle='inset';break;
+					case 5:document.getElementById('button25').style.borderStyle='inset';break;
+				}
+				for(var i=1;i<=total;i++)
+				{
+					selected[i]=false;
+				}
+				selector=index;
+				drawAll();
+			}
+			
+			function inputData()
+			{try{
+				var i1=0,i2=0;
+				var str=document.getElementById("quickInput").value;
+				if(str.indexOf(";")>0&&str.indexOf(";")<str.length-1)
+				{
+					if(inputer==1)
+					{
+						var str1=str.substring(0,str.indexOf(";"));
+						var str2=str.substring(str.indexOf(";")+1,str.length);
+						if(str2.indexOf(";")>=0)
+						{
+							var str3=str2.substring(0,str2.indexOf(";"));
+							var str4=str2.substring(str2.indexOf(";")+1,str2.length);
+							for(var i=1;i<=36;i++)
+							{
+								for(var j=1;j<=36;j++)
+								{
+									if(i==str1)i1=i;
+									if(j==str3)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connection[i1][i2]==true)connection[i1][i2]=false;
+										else connection[i1][i2]=true;
+										if(connection[i2][i1]==true)connection[i2][i1]=false;
+										else connection[i2][i1]=true;
+										phase[i1][i2]=str4;
+										phase[i2][i1]=str4;
+									}
+									i1=0; 
+									i2=0;
+								}
+							}
+						}
+						else
+						{
+							for(var i=1;i<=36;i++)
+							{
+								for(var j=1;j<=36;j++)
+								{
+									if(i==str1)i1=i;
+									if(j==str2)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connection[i1][i2]==true)connection[i1][i2]=false;
+										else connection[i1][i2]=true;
+										if(connection[i2][i1]==true)connection[i2][i1]=false;
+										else connection[i2][i1]=true;
+										//alert("["+str1+"]["+str2+"] ["+str3+"]["+str4+"] ["+i1+"]["+i2);
+									}
+									i1=0; 
+									i2=0;
+								}
+							}
+						}
+					}
+					if(inputer==2)
+					{
+						var str1=str.substring(0,str.indexOf(";"));
+						var str2=str.substring(str.indexOf(";")+1,str.length);
+						if(str2.indexOf(";")>=0)
+						{
+							var str3=str2.substring(0,str2.indexOf(";"));
+							var str4=str2.substring(str2.indexOf(";")+1,str2.length);
+							for(var i=1;i<=36;i++)
+							{
+								for(var j=1;j<=36;j++)
+								{
+									if(words[i]==str1)i1=i;
+									if(words[j]==str3)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connection[i1][i2]==true)connection[i1][i2]=false;
+										else connection[i1][i2]=true;
+										if(connection[i2][i1]==true)connection[i2][i1]=false;
+										else connection[i2][i1]=true;
+										phase[i1][i2]=str4;
+										phase[i2][i1]=str4;
+									}
+									i1=0; 
+									i2=0;
+								}
+							}
+						}
+						else
+						{
+							for(var i=1;i<=36;i++)
+							{
+								for(var j=1;j<=36;j++)
+								{
+									if(words[i]==str1)i1=i;
+									if(words[j]==str2)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connection[i1][i2]==true)connection[i1][i2]=false;
+										else connection[i1][i2]=true;
+										if(connection[i2][i1]==true)connection[i2][i1]=false;
+										else connection[i2][i1]=true;
+									}
+									i1=0; 
+									i2=0;
+								}
+							}
+						}
+					}
+				}
+				document.getElementById("quickInput").value=""; 
+				document.getElementById("quickInput").focus(); 
+				setName();
+				drawAll();
+				}catch(e){alert(e);}
+			}
+
+			function defineConnection()
+			{
+				for (var i = 1; i <= total; i++)
+				{
+					for (var j = 1; j <= total; j++)
+					{
+						if(selected[i]==true&&selected[j]==true&&i!=j)
+						{
+							selected[i]=false;
+							selected[j]=false;
+							if(connection[i][j])connection[i][j]=false;
+							else connection[i][j]=true;
+							if(connection[j][i])connection[j][i]=false;
+							else connection[j][i]=true;
+						}
+					}
+				}
+			}
+			
+			function setName()
+			{
+				words[1]=document.getElementById("name1").value;
+				words[2]=document.getElementById("name2").value;
+				words[3]=document.getElementById("name3").value;
+				words[4]=document.getElementById("name4").value;
+				words[5]=document.getElementById("name5").value;
+				words[6]=document.getElementById("name6").value;
+				words[7]=document.getElementById("name7").value;
+				words[8]=document.getElementById("name8").value;
+				words[9]=document.getElementById("name9").value;
+				words[10]=document.getElementById("namea").value;
+				words[11]=document.getElementById("nameb").value;
+				words[12]=document.getElementById("namec").value;
+				words[13]=document.getElementById("named").value;
+				words[14]=document.getElementById("namee").value;
+				words[15]=document.getElementById("namef").value;
+				words[16]=document.getElementById("nameg").value;
+				words[17]=document.getElementById("nameh").value;
+				words[18]=document.getElementById("namei").value;
+				words[19]=document.getElementById("namej").value;
+				words[20]=document.getElementById("namek").value;
+				words[21]=document.getElementById("namel").value;
+				words[22]=document.getElementById("namem").value;
+				words[23]=document.getElementById("namen").value;
+				words[24]=document.getElementById("nameo").value;
+				words[25]=document.getElementById("namep").value;
+				words[26]=document.getElementById("nameq").value;
+				words[27]=document.getElementById("namer").value;
+				words[28]=document.getElementById("names").value;
+				words[29]=document.getElementById("namet").value;
+				words[30]=document.getElementById("nameu").value;
+				words[31]=document.getElementById("namev").value;
+				words[32]=document.getElementById("namew").value;
+				words[33]=document.getElementById("namex").value;
+				words[34]=document.getElementById("namey").value;
+				words[35]=document.getElementById("namez").value;
+				words[36]=document.getElementById("name0").value;
+				//
+				wordsA[1]=document.getElementById("nameA1").value;
+				wordsA[2]=document.getElementById("nameA2").value;
+				wordsA[3]=document.getElementById("nameA3").value;
+				wordsA[4]=document.getElementById("nameA4").value;
+				wordsA[5]=document.getElementById("nameA5").value;
+				wordsA[6]=document.getElementById("nameA6").value;
+				wordsA[7]=document.getElementById("nameA7").value;
+				wordsA[8]=document.getElementById("nameA8").value;
+				wordsA[9]=document.getElementById("nameA9").value;
+				wordsA[10]=document.getElementById("nameAa").value;
+				wordsA[11]=document.getElementById("nameAb").value;
+				wordsA[12]=document.getElementById("nameAc").value;
+				wordsA[13]=document.getElementById("nameAd").value;
+				wordsA[14]=document.getElementById("nameAe").value;
+				wordsA[15]=document.getElementById("nameAf").value;
+				wordsA[16]=document.getElementById("nameAg").value;
+				wordsA[17]=document.getElementById("nameAh").value;
+				wordsA[18]=document.getElementById("nameAi").value;
+				wordsA[19]=document.getElementById("nameAj").value;
+				wordsA[20]=document.getElementById("nameAk").value;
+				wordsA[21]=document.getElementById("nameAl").value;
+				wordsA[22]=document.getElementById("nameAm").value;
+				wordsA[23]=document.getElementById("nameAn").value;
+				wordsA[24]=document.getElementById("nameAo").value;
+				wordsA[25]=document.getElementById("nameAp").value;
+				wordsA[26]=document.getElementById("nameAq").value;
+				wordsA[27]=document.getElementById("nameAr").value;
+				wordsA[28]=document.getElementById("nameAs").value;
+				wordsA[29]=document.getElementById("nameAt").value;
+				wordsA[30]=document.getElementById("nameAu").value;
+				wordsA[31]=document.getElementById("nameAv").value;
+				wordsA[32]=document.getElementById("nameAw").value;
+				wordsA[33]=document.getElementById("nameAx").value;
+				wordsA[34]=document.getElementById("nameAy").value;
+				wordsA[35]=document.getElementById("nameAz").value;
+				wordsA[36]=document.getElementById("nameA0").value;
+				//
+				drawAll();
+			}
+			
+			function setName2()
+			{
+				document.getElementById("name1").value=words[1];
+				document.getElementById("name2").value=words[2];
+				document.getElementById("name3").value=words[3];
+				document.getElementById("name4").value=words[4];
+				document.getElementById("name5").value=words[5];
+				document.getElementById("name6").value=words[6];
+				document.getElementById("name7").value=words[7];
+				document.getElementById("name8").value=words[8];
+				document.getElementById("name9").value=words[9];
+				document.getElementById("namea").value=words[10];
+				document.getElementById("nameb").value=words[11];
+				document.getElementById("namec").value=words[12];
+				document.getElementById("named").value=words[13];
+				document.getElementById("namee").value=words[14];
+				document.getElementById("namef").value=words[15];
+				document.getElementById("nameg").value=words[16];
+				document.getElementById("nameh").value=words[17];
+				document.getElementById("namei").value=words[18];
+				document.getElementById("namej").value=words[19];
+				document.getElementById("namek").value=words[20];
+				document.getElementById("namel").value=words[21];
+				document.getElementById("namem").value=words[22];
+				document.getElementById("namen").value=words[23];
+				document.getElementById("nameo").value=words[24];
+				document.getElementById("namep").value=words[25];
+				document.getElementById("nameq").value=words[26];
+				document.getElementById("namer").value=words[27];
+				document.getElementById("names").value=words[28];
+				document.getElementById("namet").value=words[29];
+				document.getElementById("nameu").value=words[30];
+				document.getElementById("namev").value=words[31];
+				document.getElementById("namew").value=words[32];
+				document.getElementById("namex").value=words[33];
+				document.getElementById("namey").value=words[34];
+				document.getElementById("namez").value=words[35];
+				document.getElementById("name0").value=words[36];
+				drawAll();
+				document.getElementById("nameA1").value=wordsA[1];
+				document.getElementById("nameA2").value=wordsA[2];
+				document.getElementById("nameA3").value=wordsA[3];
+				document.getElementById("nameA4").value=wordsA[4];
+				document.getElementById("nameA5").value=wordsA[5];
+				document.getElementById("nameA6").value=wordsA[6];
+				document.getElementById("nameA7").value=wordsA[7];
+				document.getElementById("nameA8").value=wordsA[8];
+				document.getElementById("nameA9").value=wordsA[9];
+				document.getElementById("nameAa").value=wordsA[10];
+				document.getElementById("nameAb").value=wordsA[11];
+				document.getElementById("nameAc").value=wordsA[12];
+				document.getElementById("nameAd").value=wordsA[13];
+				document.getElementById("nameAe").value=wordsA[14];
+				document.getElementById("nameAf").value=wordsA[15];
+				document.getElementById("nameAg").value=wordsA[16];
+				document.getElementById("nameAh").value=wordsA[17];
+				document.getElementById("nameAi").value=wordsA[18];
+				document.getElementById("nameAj").value=wordsA[19];
+				document.getElementById("nameAk").value=wordsA[20];
+				document.getElementById("nameAl").value=wordsA[21];
+				document.getElementById("nameAm").value=wordsA[22];
+				document.getElementById("nameAn").value=wordsA[23];
+				document.getElementById("nameAo").value=wordsA[24];
+				document.getElementById("nameAp").value=wordsA[25];
+				document.getElementById("nameAq").value=wordsA[26];
+				document.getElementById("nameAr").value=wordsA[27];
+				document.getElementById("nameAs").value=wordsA[28];
+				document.getElementById("nameAt").value=wordsA[29];
+				document.getElementById("nameAu").value=wordsA[30];
+				document.getElementById("nameAv").value=wordsA[31];
+				document.getElementById("nameAw").value=wordsA[32];
+				document.getElementById("nameAx").value=wordsA[33];
+				document.getElementById("nameAy").value=wordsA[34];
+				document.getElementById("nameAz").value=wordsA[35];
+				document.getElementById("nameA0").value=wordsA[36];
+			}
+			
+			function drawAll()
+			{
+				redraw();
+				redrawLine();
+				if(showAnswerLine)answerLine();
+				for (var i = 1; i <= total; i++)
+				{
+					redrawRect(i);
+				}
+				setText();
+				setDensity();
+				setAD();
+				if(showPhase==true)setPhase();
+				if(showGraphlet)
+				{
+					getGraphlet();
+					showGraphletNumber();
+					setRGFD();
+				}
+				else
+				{
+					for(var i=1;i<=9;i++)document.getElementById("graphlet0"+i).value="";
+					for(var i=10;i<=29;i++)document.getElementById("graphlet"+i).value="";
+					for(var i=1;i<=9;i++)document.getElementById("graphletA0"+i).value="";
+					for(var i=10;i<=29;i++)document.getElementById("graphletA"+i).value="";
+					for(var i=1;i<=29;i++)
+					{
+						if(i<=9)
+						{
+							document.getElementById("graphletP0"+i).value="";
+						}
+						else
+						{
+							document.getElementById("graphletP"+i).value="";
+						}
+					}
+					document.getElementById("graphletP3").value="";
+					document.getElementById("graphletP4").value="";
+					document.getElementById("graphletP5").value="";
+					document.getElementById("graphletP").value="";
+				}
+			}
+			
+			function setPhase(){
+				for (var i = 2; i <= total; i++)
+				{
+					for (var j = 1; j < i; j++)
+					{
+						if(phase[i][j]!=""&&phase[i][j]!="undefined"&&connection[i][j]&&phase[i][j])
+						{
+							mainCt.fillStyle="#00AA00";
+							mainCt.fillText(phase[j][i], (currentRectX[i]+currentRectX[j])/2+RECT_WIDTH/2,(currentRectY[i]+currentRectY[j])/2+RECT_HEIGHT/2);
+						}
+					}
+				}
+			}
+			
+			function setDensity()
+			{
+				var a=0.0,b=total*(total-1)/2;
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<i;j++)
+					{
+						if(connection[i][j])a++;
+					}
+				}
+				if(b<=0)b=1;
+				document.getElementById("getDensity").value=a/b;
+			}
+			
+			function setAD()
+			{
+				var a=0.0,b=total;
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<i;j++)
+					{
+						if(connection[i][j])a+=2;
+					}
+				}
+				document.getElementById("getAD").value=a/b;
+			}
+			
+			function setRGFD()
+			{
+				var sum1=0,sum2=0;
+				for(var i=1;i<=29;i++)
+				{
+					if(i<=9)
+					{
+						sum1+=parseInt(document.getElementById("graphlet0"+i).value);
+						sum2+=parseInt(document.getElementById("graphletA0"+i).value);
+					}
+					else
+					{
+						sum1+=parseInt(document.getElementById("graphlet"+i).value);
+						sum2+=parseInt(document.getElementById("graphletA"+i).value);
+					}
+				}
+				var sum=0,f1,f2;
+				for(var i=1;i<=29;i++)
+				{
+					if(i<=9)
+					{
+						f1=-Math.log(parseInt(document.getElementById("graphlet0"+i).value)/sum1);
+						f2=-Math.log(parseInt(document.getElementById("graphletA0"+i).value)/sum2);
+						sum+=Math.abs(f1-f2);
+					}
+					else
+					{
+						f1=-Math.log(parseInt(document.getElementById("graphlet0"+i).value)/sum1);
+						f2=-Math.log(parseInt(document.getElementById("graphletA0"+i).value)/sum2);
+						sum+=Math.abs(f1-f2);
+					}
+					alert(f1+"/"+f2+":"+sum);
+				}
+				document.getElementById("getRGFD").value=sum;
+			}
+			
+			function redraw(){
+				mainCt.clearRect(0,0,MAIN_CANVAS_WIDTH,MAIN_CANVAS_HEIGHT);
+			}
+			
+			function redrawLine(){
+				mainCt.strokeStyle="000000";
+				var n1=0,n2=0;
+				for (var i = 2; i <= total; i++)
+				{
+					for (var j = 1; j < i; j++)
+					{
+						for(var k=1;k<=totalA;k++)
+						{
+							if(words[j]==wordsA[k])n1=k;
+							if(words[i]==wordsA[k])n2=k;
+						}
+						if(connection[j][i])
+						{
+							if(showAnswer&&connectionA[n1][n2])mainCt.strokeStyle="#00AA00";
+							if(showAnswer&&connectionA[n1][n2]==false)mainCt.strokeStyle="#FF0000";
+							mainCt.beginPath();
+							mainCt.moveTo(currentRectX[i]+RECT_WIDTH/2,currentRectY[i]+RECT_HEIGHT/2);
+							mainCt.lineTo(currentRectX[j]+RECT_WIDTH/2,currentRectY[j]+RECT_HEIGHT/2);
+							mainCt.closePath();
+							mainCt.stroke();
+						}
+					}
+				}
+			}
+			
+			function answerLine()
+			{
+				mainCt.strokeStyle="#000000";
+				var n1=0,n2=0;
+				for(var i=2;i<=total;i++)
+				{
+					for (var j = 1; j < i; j++)
+					{
+						for(var k=1;k<=totalA;k++)
+						{
+							for(var l=1;l<=totalA;l++)
+							{
+								if(words[j]==wordsA[l])
+								{
+									n1=l;
+								}
+								else
+								n1=0;
+								if(words[i]==wordsA[k])
+								{
+									n2=k;
+								}
+								else
+								n2=0;
+								if(connectionA[n1][n2]&&connection[j][i]==false)
+								{
+									mainCt.beginPath();
+									mainCt.setLineDash([5,10]);
+									mainCt.moveTo(currentRectX[i]+RECT_WIDTH/2,currentRectY[i]+RECT_HEIGHT/2);
+									mainCt.lineTo(currentRectX[j]+RECT_WIDTH/2,currentRectY[j]+RECT_HEIGHT/2);
+									mainCt.closePath();
+									mainCt.stroke();
+									mainCt.setLineDash([0,0]);
+									//mainCt.fillText(i+" "+j+" "+n1+" "+n2+":", currentRectX[i], currentRectY[i]);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+            function redrawRect(index){
+				mainCt.fillStyle='rgba(0, 0, 0, 0.2)';
+				ParamEllipse(mainCt, currentRectX[index]+43, currentRectY[index]+33, 40, 30,50);
+				if(selected[index])
+				{
+					switch(selector)
+					{
+						case 2:
+						case 5:
+						mainCt.fillStyle="#FF0000";
+						break;
+						case 3:
+						mainCt.fillStyle="#0000FF";
+						break;
+						case 4:
+						mainCt.fillStyle="#FF3000";
+						break;
+						default:
+						mainCt.fillStyle="#009900";
+					}
+					ParamEllipse(mainCt, currentRectX[index]+40, currentRectY[index]+30, 43, 33);
+				}
+				if(showAnswer)
+				{
+					var hasStr=false;
+					for(var i=1;i<=totalA;i++)
+					{
+						if(words[index]==wordsA[i])hasStr=true;
+					}
+					if(hasStr)mainCt.fillStyle="#00DD00";
+					else mainCt.fillStyle="#DD0000";
+				}
+				else mainCt.fillStyle="#EEEE11";
+				ParamEllipse(mainCt, currentRectX[index]+40, currentRectY[index]+30, 40, 30);
+				mainCt.fillStyle="#000000";
+				mainCt.fillText(words[index], currentRectX[index]+RECT_WIDTH/2-words[index].length*6/2, currentRectY[index]+RECT_HEIGHT/2);
+			}
+			
+			function ParamEllipse(context, x, y, a, b) 
+			{ 
+				var step = (a > b) ? 1 / a : 1 / b; 
+				context.beginPath(); 
+				context.moveTo(x + a, y);
+				for (var i = 0; i < 2 * Math.PI; i += step) 
+				{
+					context.lineTo(x + a * Math.cos(i), y + b * Math.sin(i)); 
+				} 
+				context.closePath(); 
+				context.fill(); 
+			};
+			
+			function autoSelect(index)
+			{
+				for(var i=1;i<=36;i++)
+				{
+					selected[i]=false;
+				}
+				pointer=index;
+				selected[pointer]=true;
+				drawAll();
+			};
+			
+			function setText()
+			{
+				document.getElementById("text01").value="["+document.getElementById("filename").value+"]\n";
+				for (var i = 2; i <= total; i++)
+				{
+					for (var j = 1; j < i; j++)
+					{
+						if(connection[i][j])
+						{
+							if(phase[j][i]=="")
+							document.getElementById("text01").value+="["+words[j]+";"+words[i]+"]\n";
+							else
+							document.getElementById("text01").value+="["+words[j]+";"+words[i]+";"+phase[j][i]+"]\n";
+						}
+					}
+				}
+				document.getElementById("getTotal").value=total;
+			}
+			
+			function changeTotal(changer)
+			{
+				total=parseInt(total,10)+parseInt(changer,10);
+				if(total<1)total=1;
+				if(total>=36)total=36;
+				for (var i = 0; i <= total; i++) {
+					initialCoordinate(i);
+				}
+				setName();
+				drawAll();
+			}
+			
+			function removeElement(index)
+			{
+				total--;
+				for (var i = 1; i < 36; i++)
+				{
+					if(i>=index)
+					{
+						words[i]=words[i+1];
+						selected[i]=selected[i+1];
+					}
+					for (var j = 1; j < 36; j++)
+					{
+						if(i>=index&&j>=index)
+						{
+							connection[i][j]=connection[i+1][j+1];
+							phase[i][j]=phase[i+1][j+1];
+						}
+						if(i>=index&&j<index)
+						{
+							connection[i][j]=connection[i+1][j];
+							phase[i][j]=phase[i+1][j];
+						}
+						if(i<index&&j>=index)
+						{
+							connection[i][j]=connection[i][j+1];
+							phase[i][j]=phase[i][j+1];
+						}
+					}
+				}
+				selected[36]=false;
+				words[36]="";
+				connection[index][36]=false;
+				connection[36][index]=false;
+				phase[index][36]="";
+				phase[36][index]="";
+				setName2();
+				drawAll();
+			}
+			
+			function reshow()
+			{
+				for (var i = 0; i <= total; i++) {
+					initialCoordinate(i);
+				}
+				drawAll();
+				setName();
+			}
+			
+			function initialCoordinate(i)
+			{
+				currentRectX[i] = 450+radius*Math.cos(Math.PI * 2 / total *(i-1)+Math.PI / 2)*1.5;
+				currentRectY[i] = 280-radius*Math.sin(Math.PI * 2 / total *(i-1)+Math.PI / 2);
+			}
+			
+			function newFile(index)
+			{
+				total=index;
+				for(var i=1;i<=36;i++)
+				{
+					for(var j=1;j<=36;j++)
+					{
+						connection[i][j]=false;
+						phase[i][j]="";
+					}
+					words[i]="";
+					selected[i]=false;
+					toSelect[i]=false;
+					toSelect2[i]=false;
+					pointer=0;
+				}
+			}
+			
+			function newFileA(index)
+			{
+				totalA=index;
+				for(var i=0;i<=36;i++)
+				{
+					for(var j=0;j<=36;j++)
+					{
+						connectionA[i][j]=false;
+						phaseA[i][j]="";
+					}
+					wordsA[i]="";
+				}
+			}
+			
+			function reconnect()
+			{
+				for (var i = 1; i < 36; i++)
+				{
+					for (var j = 1; j < 36; j++)
+					{
+						connection[i][j]=false;
+						phase[i][j]=false;
+					}
+					selected[i]=false;
+				}
+				drawAll();
+				setName();
+			}
+			
+			function sort()
+			{
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<=total-i;j++)
+					{
+						if(words[j].localeCompare(words[j+1])>0)
+						{
+							var boo0=true;
+							boo0=selected[i];
+							selected[i]=selected[i+1];
+							selected[i+1]=boo0;
+							for(var k=1;k<=36;k++)
+							{
+								var boo=true;
+								var str="";
+								boo=connection[k][j];
+								connection[k][j]=connection[k][j+1];
+								connection[k][j+1]=boo;
+								boo=connection[j][k];
+								connection[j][k]=connection[j+1][k];
+								connection[j+1][k]=boo;
+								str=phase[k][j];
+								phase[k][j]=phase[k][j+1];
+								phase[k][j+1]=str;								
+								str=phase[j][k];
+								phase[j][k]=phase[j+1][k];
+								phase[j+1][k]=str;								
+							}
+							var str0=words[j];
+							words[j]=words[j+1];
+							words[j+1]=str0;
+						}
+					}
+				}
+				drawAll();
+				setName2();
+			}
+			
+			function showgraphlet()
+			{
+				showGraphlet=!showGraphlet;
+				if(showGraphlet)
+				{
+					document.getElementById("button37").style.backgroundImage='url(images/icona29.jpg)';
+				}
+				else
+				{
+					document.getElementById("button37").style.backgroundImage='url(images/icona30.jpg)';
+				}
+				drawAll();
+			}
+			
+			function convertMap()
+			{
+				showPhase=!showPhase;
+				if(showPhase)
+				{
+					document.getElementById("button12").style.backgroundImage='url(images/icona05.jpg)';
+				}
+				else
+				{
+					document.getElementById("button12").style.backgroundImage='url(images/icona06.jpg)';
+				}
+				drawAll();
+			}
+			
+			function showanswer()
+			{
+				if(loadAnswer)
+				showAnswer=!showAnswer;
+				if(showAnswer)
+				{
+					document.getElementById("button28").style.backgroundImage='url(images/icona19.jpg)';
+				}
+				else
+				{
+					document.getElementById("button28").style.backgroundImage='url(images/icona20.jpg)';
+				}
+				drawAll();
+			}
+			
+			function setAL()
+			{
+				if(loadAnswer)
+				showAnswerLine=!showAnswerLine;
+				if(showAnswerLine)
+				{
+					document.getElementById("button29").style.backgroundImage='url(images/icona21.jpg)';
+				}
+				else
+				{
+					document.getElementById("button29").style.backgroundImage='url(images/icona22.jpg)';
+				}
+				drawAll();
+			}
+			
+			function seeCM(index)
+			{
+				if(index)
+				{
+					document.getElementById("button31").style.display="inline";
+					document.getElementById("button32").style.display="inline";
+					document.getElementById("button33").style.display="inline";
+					document.getElementById("button34").style.display="inline";
+					document.getElementById("button35").style.display="inline";
+					document.getElementById("button36").style.display="inline";
+				}
+				else
+				{
+					document.getElementById("button31").style.display="none";
+					document.getElementById("button32").style.display="none";
+					document.getElementById("button33").style.display="none";
+					document.getElementById("button34").style.display="none";
+					document.getElementById("button35").style.display="none";
+					document.getElementById("button36").style.display="none";
+				}
+			}
+			
+			function forConnectMethod(index)
+			{
+				cMethod=index;
+				switch(cMethod)
+				{
+					case 1:
+					for(var i=1;i<=36;i++)
+					{
+						toSelect[i]=selected[i];
+					}
+					for(var i=1;i<=36;i++)
+					{
+						for(var j=1;j<=36;j++)
+						{
+							if(toSelect[i]&&toSelect[j]&&i!=j)connection[i][j]=true;
+						}
+					}
+					break;
+					case 2:
+					for (var i = 1; i <= total; i++)
+					{
+						toSelect[i]=selected[i];
+						selected[i]=false;
+					}
+					break;
+					case 4:
+					for (var i = 1; i <= total; i++)
+					{
+						toSelect2[i]=selected[i];
+						selected[i]=false;
+					}
+					for (var i = 2; i <= total; i++)
+					{
+						for (var j = 1; j < i; j++)
+						{
+							if(toSelect[j]&&toSelect2[i])connection[j][i]=true;
+							if(toSelect[i]&&toSelect2[j])connection[j][i]=true;
+						}
+					}
+					cMethod=0;
+					break;
+					case 6:
+					var j=0;
+					for(var i=1;i<=36;i++)
+					{
+						if(selected[i])
+						{
+							for(var j=1;j<=36;j++)
+							{
+								connection[i][j]=true;
+								connection[j][i]=true;
+							}
+						}
+					}
+					break;
+					case 5:
+					var j=0;
+					for(var i=1;i<=36;i++)
+					{
+						if(selected[i])
+						{
+							for(var j=1;j<=36;j++)
+							{
+								connection[i][j]=false;
+								connection[j][i]=false;
+							}
+						}
+					}
+					break;
+					case 3:
+					var j=0;
+					for(var i=1;i<=36;i++)
+					{
+						if(selected[i])
+						{
+							removeElement(i--);
+						}
+					}
+					break;
+					default:
+					for (var i = 1; i <= 36; i++)
+					{
+						toSelect[i]=selected[i];
+					}
+				}
+				drawAll();
+				setName();
+			}
+			
+			function saveTextAsFile()
+			{
+				var textToWrite = document.getElementById("text01").value;
+				for(var i=1;i<=total;i++)
+				{
+					var con=false;
+					for(var j=1;j<=total;j++)
+					{
+						if(connection[i][j])con=true;
+					}
+					if(con==false)textToWrite+="["+words[i]+";"+words[i]+"]";
+				}
+				var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+				var fileNameToSaveAs = document.getElementById("filename").value;//Need to be changed
+
+				var downloadLink = document.createElement("a");
+				downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+				downloadLink.download = fileNameToSaveAs;
+				downloadLink.click();    
+			}
+			
+			function readSingleFile(evt)
+			{
+				//Retrieve the first (and only!) File from the FileList object
+				var f = evt.target.files[0];
+				if (f) {
+					var r = new FileReader();
+					r.onload = function(e)
+					{
+						var contents = e.target.result;
+						var str1,str2,str3,str4;
+						//zerolize
+						newFile(0);
+						strName=contents.substring(contents.indexOf("[")+1,contents.indexOf("]"));
+						document.getElementById("filename").value=strName;
+						contents=contents.substring(contents.indexOf("]"), contents.length);
+						contents=contents.substring(contents.indexOf("["), contents.length);
+						//alert(contents);
+						do
+						{
+							str1=contents.substring(contents.indexOf("[")+1,contents.indexOf(";"));
+							var hasString=false;
+							for(var i=1;i<=total;i++)
+							{
+								if(words[i]==str1)hasString=true;
+							}
+							if(hasString==false&&total<36)
+							{
+								words[total+1]=str1;
+								total++;
+							}
+							str2=contents.substring(contents.indexOf(";")+1,contents.indexOf("]"));
+							if(str2.indexOf(";")>=0)
+							{
+								str3=str2.substring(0,str2.indexOf(";"));
+								str4=str2.substring(str2.indexOf(";")+1,str2.length);
+							}
+							else
+							{
+								str3=str2;
+								str4="";
+							}
+							hasString=false;
+							for(var i=1;i<=total;i++)
+							{
+								if(words[i]==str3)hasString=true;
+							}
+							if(hasString==false&&total<36)
+							{
+								words[total+1]=str3;
+								total++;
+							}
+							if(contents.indexOf("]")+2!=contents.length)
+							{
+								contents=contents.substring(contents.indexOf("]")+1,contents.length);
+							}
+							else
+								contents="";
+							var i1=0,i2=0;
+							for(var i=1;i<=total;i++)
+							{
+								for(var j=1;j<=total;j++)
+								{
+									if(words[i]==str1)i1=i;
+									if(words[j]==str3)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connection[i1][i2]==true)connection[i1][i2]=false;
+										else connection[i1][i2]=true;
+										if(connection[i2][i1]==true)connection[i2][i1]=false;
+										else connection[i2][i1]=true;
+										phase[i1][i2]=str4;
+										phase[i2][i1]=str4;
+									}
+									i1=0;
+									i2=0;
+								}
+							}
+						//alert("1:"+str1+"*2"+str2+"*3:"+str3+"*4:"+str4+"*wi:"+words[i]+"*wj:"+words[j]+"*i:"+i+"*j:"+j+"*");
+						}
+						while(contents!="")
+						setName2();
+						reshow();
+						//document.getElementById("button02").click();
+					}
+					r.readAsText(f);
+				}
+				else{
+					alert("Failed to load file");
+				}
+			}
+			
+			function readSingleFileA(evt)
+			{
+				//Retrieve the first (and only!) File from the FileList object
+				var f = evt.target.files[0];
+				if (f) {
+					var r = new FileReader();
+					r.onload = function(e)
+					{
+						var contents = e.target.result;
+						var str1,str2,str3,str4;
+						//zerolize
+						newFileA(0);
+						strName=contents.substring(contents.indexOf("[")+1,contents.indexOf("]"));
+						//document.getElementById("filename").value=strName;
+						contents=contents.substring(contents.indexOf("]"), contents.length);
+						contents=contents.substring(contents.indexOf("["), contents.length);
+						do
+						{
+							str1=contents.substring(contents.indexOf("[")+1,contents.indexOf(";"));
+							var hasString=false;
+							for(var i=1;i<=totalA;i++)
+							{
+								if(wordsA[i]==str1)hasString=true;
+							}
+							if(hasString==false&&totalA<36)
+							{
+								wordsA[totalA+1]=str1;//totalA
+								totalA++;
+							}
+							str2=contents.substring(contents.indexOf(";")+1,contents.indexOf("]"));
+							if(str2.indexOf(";")>=0)
+							{
+								str3=str2.substring(0,str2.indexOf(";"));
+								str4=str2.substring(str2.indexOf(";")+1,str2.length);
+							}
+							else
+							{
+								str3=str2;
+								str4="";
+							}
+							hasString=false;
+							for(var i=1;i<=totalA;i++)
+							{
+								if(wordsA[i]==str3)hasString=true;
+							}
+							if(hasString==false&&totalA<36)
+							{
+								wordsA[totalA+1]=str3;
+								totalA++;
+							}
+							//alert(contents.indexOf("]")+"!!"+contents.length);
+							if(contents.indexOf("]")+2!=contents.length)
+							{
+								contents=contents.substring(contents.indexOf("]")+1,contents.length);
+							}
+							else
+								contents="";
+							//alert(contents);//
+							var i1=0,i2=0;
+							for(var i=1;i<=totalA;i++)
+							{
+								for(var j=1;j<=totalA;j++)
+								{
+									if(wordsA[i]==str1)i1=i;
+									if(wordsA[j]==str3)i2=j;
+									if(i1*i2!=0)
+									{
+										if(connectionA[i1][i2]==true)connectionA[i1][i2]=false;
+										else connectionA[i1][i2]=true;
+										if(connectionA[i2][i1]==true)connectionA[i2][i1]=false;
+										else connectionA[i2][i1]=true;
+										phaseA[i1][i2]=str4;
+										phaseA[i2][i1]=str4;
+									}
+									i1=0;
+									i2=0;
+								}
+							}
+						//alert("1:"+str1+"*2"+str2+"*3:"+str3+"*4:"+str4+"*wi:"+words[i]+"*wj:"+words[j]+"*i:"+i+"*j:"+j+"*");
+						}
+						while(contents!="")
+						setName2();
+						reshow();
+					}
+					r.readAsText(f);
+				}
+				else{
+					alert("Failed to load file");
+				}
+			}
+		
+			var to = "lit8@miamioh.edu";
+
+			function submitMailForm() {
+				//var tform = document.mailform;
+				window.location = "mailto:" + to + "?Subject=" + escape(document.getElementById("filename").value) + "&body=" + escape(document.getElementById("text01").value);
+			}
+			
+			function getGraphlet()
+			{
+				for(var i=1;i<=total;i++)
+				{
+					graphletString[i]="";
+					graphletStringA[i]="";
+				}
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<=total;j++)
+					{
+						for(var k=1;k<=total;k++)
+						{
+							if(i!=j&&j!=k&&k!=i)
+							{
+								getGraphlet3(k,j,i);
+								getGraphletA3(k,j,i);
+							}
+						}
+					}
+				}
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<=total;j++)
+					{
+						for(var k=1;k<=total;k++)
+						{
+							for(var l=1;l<=total;l++)
+							{
+								if(i!=j&&i!=k&&i!=l&&j!=k&&j!=l&&k!=l)
+								{
+									getGraphlet4(l,k,j,i);
+									getGraphletA4(l,k,j,i);
+								}
+							}
+						}
+					}
+				}
+				for(var i=1;i<=total;i++)
+				{
+					for(var j=1;j<=total;j++)
+					{
+						for(var k=1;k<=total;k++)
+						{
+							for(var l=1;l<=total;l++)
+							{
+								for(var m=1;m<=total;m++)
+								{
+									if(i!=j&&i!=k&&i!=l&&i!=m&&j!=k&&j!=l&&j!=m&&k!=l&&k!=m&&l!=m)
+									{
+										getGraphlet5(m,l,k,j,i);
+										getGraphletA5(m,l,k,j,i);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			function alphabetTransfer(index)
+			{
+				switch(index)
+				{
+					case 1:return "1";
+					case 2:return "2";
+					case 3:return "3";
+					case 4:return "4";
+					case 5:return "5";
+					case 6:return "6";
+					case 7:return "7";
+					case 8:return "8";
+					case 9:return "9";
+					case 10:return "a";
+					case 11:return "b";
+					case 12:return "c";
+					case 13:return "d";
+					case 14:return "e";
+					case 15:return "f";
+					case 16:return "g";
+					case 17:return "h";
+					case 18:return "i";
+					case 19:return "j";
+					case 20:return "k";
+					case 21:return "l";
+					case 22:return "m";
+					case 23:return "n";
+					case 24:return "o";
+					case 25:return "p";
+					case 26:return "q";
+					case 27:return "r";
+					case 28:return "s";
+					case 29:return "t";
+					case 30:return "u";
+					case 31:return "v";
+					case 32:return "w";
+					case 33:return "x";
+					case 34:return "y";
+					case 35:return "z";
+					default:return "0";
+				}
+			}
+			
+			function getGraphletNumber(index)
+			{
+				if(index<=2)return graphletString[index].length/4;
+				else if(index<=8)return graphletString[index].length/5;
+				else return graphletString[index].length/6;
+			}
+			
+			function getGraphletNumberA(index)
+			{
+				if(index<=2)return graphletStringA[index].length/4;
+				else if(index<=8)return graphletStringA[index].length/5;
+				else return graphletStringA[index].length/6;
+			}
+			
+			function showGraphletNumber()
+			{
+				for(var i=1;i<=9;i++)document.getElementById("graphlet0"+i).value=getGraphletNumber(i);
+				for(var i=10;i<=29;i++)document.getElementById("graphlet"+i).value=getGraphletNumber(i);
+				for(var i=1;i<=9;i++)document.getElementById("graphletA0"+i).value=getGraphletNumberA(i);
+				for(var i=10;i<=29;i++)document.getElementById("graphletA"+i).value=getGraphletNumberA(i);
+				var a=0,b=1,c=0,d=0,e=0,f=0,g=0,h=0;
+				for(var i=1;i<=29;i++)
+				{
+					for(var j=0;j<graphletString[i].length;j+=4)
+					{
+						if(graphletStringA[i].indexOf(graphletString[i].substring(j,j+4))!=-1)
+						{
+							a++;
+						}
+					}
+					b=getGraphletNumber(i);
+					if(i<=2)
+					{
+						c+=b;
+						f+=a;
+					}
+					else if(i<=8)
+					{
+						d+=b;
+						g+=a;
+					}
+					else
+					{
+						e+=b;
+						h+=a;
+					}
+					if(i<=9)
+					{
+						document.getElementById("graphletP0"+i).value=a+"/"+b;
+					}
+					else
+					{
+						document.getElementById("graphletP"+i).value=a+"/"+b;
+					}
+					a=0;
+				}
+				document.getElementById("graphletP3").value=f+"/"+c;
+				document.getElementById("graphletP4").value=g+"/"+d;
+				document.getElementById("graphletP5").value=h+"/"+e;
+				document.getElementById("graphletP").value=(f+g+h)+"/"+(c+d+e);
+			}
+			
+			function graphletCheck3(index,a,b,c)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+";";
+				for(var i=1;i<3;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,4);
+							str=str1;
+						}
+					}
+				}
+				if(graphletString[index].indexOf(str)==-1)graphletString[index]+=str;
+			}
+			
+			function graphletCheck4(index,a,b,c,d)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+alphabetTransfer(d)+";";
+				for(var i=1;i<4;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,5);
+							str=str1;
+						}
+					}
+				}
+				if(graphletString[index].indexOf(str)==-1)graphletString[index]+=str;
+			}
+			
+			function graphletCheck5(index,a,b,c,d,e)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+alphabetTransfer(d)+alphabetTransfer(e)+";";
+				for(var i=1;i<5;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,6);
+							str=str1;
+						}
+					}
+				}
+				if(graphletString[index].indexOf(str)==-1)graphletString[index]+=str;
+			}
+			
+			function graphletCheckA3(index,a,b,c)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+";";
+				for(var i=1;i<3;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,4);
+							str=str1;
+						}
+					}
+				}
+				if(graphletStringA[index].indexOf(str)==-1)graphletStringA[index]+=str;
+			}
+			
+			function graphletCheckA4(index,a,b,c,d)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+alphabetTransfer(d)+";";
+				for(var i=1;i<4;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,5);
+							str=str1;
+						}
+					}
+				}
+				if(graphletStringA[index].indexOf(str)==-1)graphletStringA[index]+=str;
+			}
+			
+			function graphletCheckA5(index,a,b,c,d,e)
+			{
+				var str=alphabetTransfer(a)+alphabetTransfer(b)+alphabetTransfer(c)+alphabetTransfer(d)+alphabetTransfer(e)+";";
+				for(var i=1;i<5;i++)
+				{
+					for(var j=0;j<i;j++)
+					{
+						if(str.charAt(j).localeCompare(str.charAt(i))>0)
+						{
+							var Ch1=str.charAt(j);
+							var Ch2=str.charAt(i);
+							var str1=str.substring(0,j)+Ch2+str.substring(j+1,i)+Ch1+str.substring(i+1,6);
+							str=str1;
+						}
+					}
+				}
+				if(graphletStringA[index].indexOf(str)==-1)graphletStringA[index]+=str;
+			}
+			
+			function getGraphlet3(a,b,c)
+			{
+				if(connection[a][b]&&connection[b][c])
+				{
+					graphletCheck3(1,a,b,c);
+					if(connection[a][c])graphletCheck3(2,a,b,c);
+				}
+			}
+			
+			function getGraphlet4(a,b,c,d)
+			{
+				if(connection[a][b]&&connection[b][c])
+				{
+					if(connection[c][d])graphletCheck4(3,a,b,c,d);
+					if(connection[b][d])graphletCheck4(4,a,b,c,d);
+					if(connection[a][d]&&connection[c][d])graphletCheck4(5,a,b,c,d);
+					if(connection[a][d]&&connection[b][d])graphletCheck4(6,a,b,c,d);
+					if(connection[a][c]&&connection[a][d]&&connection[c][d])graphletCheck4(7,a,b,c,d);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[c][d])graphletCheck4(8,a,b,c,d);
+				}
+			}
+			
+			function getGraphlet5(a,b,c,d,e)
+			{
+				if(connection[a][b]&&connection[b][c])
+				{
+					if(connection[c][d]&&connection[d][e])graphletCheck5(9,a,b,c,d,e);
+					if(connection[c][d]&&connection[c][e])graphletCheck5(10,a,b,c,d,e);
+					if(connection[b][d]&&connection[b][e])graphletCheck5(11,a,b,c,d,e);
+					if(connection[a][d]&&connection[b][d]&&connection[d][e])graphletCheck5(12,a,b,c,d,e);
+					if(connection[c][d]&&connection[c][e]&&connection[d][e])graphletCheck5(13,a,b,c,d,e);
+					if(connection[b][d]&&connection[b][e]&&connection[d][e])graphletCheck5(14,a,b,c,d,e);
+					if(connection[c][d]&&connection[d][e]&&connection[a][e])graphletCheck5(15,a,b,c,d,e);
+					if(connection[c][d]&&connection[c][e]&&connection[a][e])graphletCheck5(16,a,b,c,d,e);
+					if(connection[c][d]&&connection[c][e]&&connection[a][c]&&connection[a][e])graphletCheck5(17,a,b,c,d,e);
+					if(connection[a][d]&&connection[b][d]&&connection[b][e]&&connection[c][e])graphletCheck5(18,a,b,c,d,e);
+					if(connection[c][d]&&connection[c][e]&&connection[a][e]&&connection[b][e])graphletCheck5(19,a,b,c,d,e);
+					if(connection[a][d]&&connection[c][d]&&connection[a][e]&&connection[c][e])graphletCheck5(20,a,b,c,d,e);
+					if(connection[a][d]&&connection[b][d]&&connection[c][e]&&connection[d][e])graphletCheck5(21,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[a][e]&&connection[b][e])graphletCheck5(22,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[c][d]&&connection[d][e])graphletCheck5(23,a,b,c,d,e);
+					if(connection[a][d]&&connection[b][d]&&connection[b][e]&&connection[c][e]&&connection[d][e])graphletCheck5(24,a,b,c,d,e);
+					if(connection[a][d]&&connection[b][d]&&connection[c][d]&&connection[a][e]&&connection[c][e])graphletCheck5(25,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[a][e]&&connection[b][e]&&connection[d][e])graphletCheck5(26,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[b][e]&&connection[c][e]&&connection[d][e])graphletCheck5(27,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[b][d]&&connection[c][d]&&connection[a][e]&&connection[b][e]&&connection[d][e])graphletCheck5(28,a,b,c,d,e);
+					if(connection[a][c]&&connection[a][d]&&connection[a][e]&&connection[b][d]&&connection[b][e]&&connection[c][d]&&connection[c][e]&&connection[d][e])graphletCheck5(29,a,b,c,d,e);
+				}
+			}
+			
+			function getGraphletA3(a,b,c)
+			{
+				if(connectionA[a][b]&&connectionA[b][c])
+				{
+					graphletCheckA3(1,a,b,c);
+					if(connectionA[a][c])graphletCheckA3(2,a,b,c);
+				}
+			}
+			
+			function getGraphletA4(a,b,c,d)
+			{
+				if(connectionA[a][b]&&connectionA[b][c])
+				{
+					if(connectionA[c][d])graphletCheckA4(3,a,b,c,d);
+					if(connectionA[b][d])graphletCheckA4(4,a,b,c,d);
+					if(connectionA[a][d]&&connectionA[c][d])graphletCheckA4(5,a,b,c,d);
+					if(connectionA[a][d]&&connectionA[b][d])graphletCheckA4(6,a,b,c,d);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[c][d])graphletCheckA4(7,a,b,c,d);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[c][d])graphletCheckA4(8,a,b,c,d);
+				}
+			}
+			
+			function getGraphletA5(a,b,c,d,e)
+			{
+				if(connectionA[a][b]&&connectionA[b][c])
+				{
+					if(connectionA[c][d]&&connectionA[d][e])graphletCheckA5(9,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[c][e])graphletCheckA5(10,a,b,c,d,e);
+					if(connectionA[b][d]&&connectionA[b][e])graphletCheckA5(11,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[b][d]&&connectionA[d][e])graphletCheckA5(12,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[c][e]&&connectionA[d][e])graphletCheckA5(13,a,b,c,d,e);
+					if(connectionA[b][d]&&connectionA[b][e]&&connectionA[d][e])graphletCheckA5(14,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[d][e]&&connectionA[a][e])graphletCheckA5(15,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[c][e]&&connectionA[a][e])graphletCheckA5(16,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[c][e]&&connectionA[a][c]&&connectionA[a][e])graphletCheckA5(17,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[b][d]&&connectionA[b][e]&&connectionA[c][e])graphletCheckA5(18,a,b,c,d,e);
+					if(connectionA[c][d]&&connectionA[c][e]&&connectionA[a][e]&&connectionA[b][e])graphletCheckA5(19,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[c][d]&&connectionA[a][e]&&connectionA[c][e])graphletCheckA5(20,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[b][d]&&connectionA[c][e]&&connectionA[d][e])graphletCheckA5(21,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[a][e]&&connectionA[b][e])graphletCheckA5(22,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[c][d]&&connectionA[d][e])graphletCheckA5(23,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[b][d]&&connectionA[b][e]&&connectionA[c][e]&&connectionA[d][e])graphletCheckA5(24,a,b,c,d,e);
+					if(connectionA[a][d]&&connectionA[b][d]&&connectionA[c][d]&&connectionA[a][e]&&connectionA[c][e])graphletCheckA5(25,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[a][e]&&connectionA[b][e]&&connectionA[d][e])graphletCheckA5(26,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[b][e]&&connectionA[c][e]&&connectionA[d][e])graphletCheckA5(27,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[b][d]&&connectionA[c][d]&&connectionA[a][e]&&connectionA[b][e]&&connectionA[d][e])graphletCheckA5(28,a,b,c,d,e);
+					if(connectionA[a][c]&&connectionA[a][d]&&connectionA[a][e]&&connectionA[b][d]&&connectionA[b][e]&&connectionA[c][d]&&connectionA[c][e]&&connectionA[d][e])graphletCheckA5(29,a,b,c,d,e);
+				}
+			}
+		
+		</script>
+	</head>
+
+	<body>
+		<div id="header3">
+			&nbsp;Filename
+			<input id="filename" type="text" onchange="setText();" value="untitled" size="15">
+		</div>
+		<div id="header2"  style="background-image:url('http://files.abovetopsecret.com/uploads/ats62900_worldwar3.jpg');">
+			<div id="header5">
+			<table width="1000">
+			<tr>
+				<input type="file" id="fileinput" style="display:none;" onchange="readSingleFile(event)"/>
+				<input type="file" id="fileinputA" style="display:none;" onchange="readSingleFileA(event)"/>
+				<button onclick="newFile(0);drawAll();setName2();" style="width:30px;height:30px;background-image:url('images/icona01.jpg');" title="New file"></button>
+				<button onclick="showGraphletNumber();document.getElementById('fileinput').click();" style="width:30px;height:30px;background-image:url('images/icona02.jpg');" title="Open file"></button>
+				<button onclick="showGraphletNumber();document.getElementById('button28').disabled=false;document.getElementById('button29').disabled=false;loadAnswer=true;document.getElementById('fileinputA').click();" style="width:30px;height:30px;background-image:url('images/icona18.jpg');" title="Open criterion file"></button>
+				<button onclick="javascript:saveTextAsFile()" style="width:30px;height:30px;background-image:url('images/icona03.jpg');" title="Save file"></button>
+				<button id="button10" onclick="submitMailForm()" style="width:30px;height:30px;background-image:url('images/icona04.jpg');" title="Mail file"></button>
+				&nbsp;
+				<button id="button12" onclick="convertMap();" style="width:30px;height:30px;background-image:url('images/icona05.jpg');" title="Concept-Map/Mind-map"></button>
+				<button id="button28" onclick="showanswer();" style="width:30px;height:30px;background-image:url('images/icona20.jpg');" title="Compare with answer/No compare" disabled></button>
+				<button id="button29" onclick="setAL();" style="width:30px;height:30px;background-image:url('images/icona22.jpg');" title="Show criterion" disabled></button>
+				<button id="button37" onclick="showgraphlet();" style="width:30px;height:30px;background-image:url('images/icona30.jpg');" title="Show graphlet"></button>
+				&nbsp;
+				<input id="quickInput" type="text" size="36" value="Example: ?;? or ?;?;(phase)" onkeypress="EnterPress(event)" onkeydown="EnterPress()">
+				<button id="button09" onclick="inputData()" style="width:30px;height:30px;background-image:url('images/icona17.jpg');" title="Quick-input"></button>
+				&nbsp;
+				<button id="button26" onclick="changeInputer(1);" style="width:30px;height:30px;background-image:url('images/icona15.jpg');border-style:inset;" title="Input by Number"></button>
+				<button id="button27" onclick="changeInputer(2);" style="width:30px;height:30px;background-image:url('images/icona16.jpg');border-style:outset;" title="Input by Name"></button>
+				<br/>
+			<tr/>
+			<tr>
+				&nbsp;
+				<button id="button02" onclick="reshow();" style="width:30px;height:30px;background-image:url('images/icona08.jpg');" title="Arrange"></button>
+				<button onclick="sort();" style="width:30px;height:30px;background-image:url('images/icona09.jpg');" title="Sort"></button>
+				<button onclick="reconnect();" style="width:30px;height:30px;background-image:url('images/icona07.jpg');" title="Remove all connections"></button>
+				&nbsp;
+				<button id="button23" onclick="seeCM(true);changeSelector(3);" style="width:30px;height:30px;background-image:url('images/icona10.jpg');border-style:outset;" title="Selector"></button>
+				<button id="button21" onclick="seeCM(false);cMethod=0;changeSelector(1);" style="width:30px;height:30px;background-image:url('images/icona11.jpg');border-style:inset;" title="Connector"></button>
+				<button id="button24" onclick="seeCM(false);cMethod=0;changeSelector(4);" style="width:30px;height:30px;background-image:url('images/icona12.jpg');border-style:outset;" title="MegaConnector"></button>
+				<button id="button25" onclick="seeCM(false);cMethod=0;changeSelector(5);" style="width:30px;height:30px;background-image:url('images/icona13.jpg');border-style:outset;" title="Connection-remover"></button>
+				<button id="button22" onclick="seeCM(false);cMethod=0;changeSelector(2);" style="width:30px;height:30px;background-image:url('images/icona14.jpg');border-style:outset;" title="Deleter"></button>
+				&nbsp;
+				<button id="button31" onclick="forConnectMethod(1);" style="width:30px;height:30px;background-image:url('images/icona24.jpg');display:none;" title="Group connect"></button>
+				<button id="button32" onclick="forConnectMethod(2);" style="width:30px;height:30px;background-image:url('images/icona25.jpg');display:none;" title="Double group connect - part I"></button>
+				<button id="button34" onclick="forConnectMethod(4);" style="width:30px;height:30px;background-image:url('images/icona23.jpg');display:none;" title="Double group connect - part II"></button>
+				<button id="button36" onclick="forConnectMethod(6);" style="width:30px;height:30px;background-image:url('images/icona28.jpg');display:none;" title="Mega group connect"></button>
+				<button id="button35" onclick="forConnectMethod(5);" style="width:30px;height:30px;background-image:url('images/icona26.jpg');display:none;" title="Remove connections"></button>
+				<button id="button33" onclick="forConnectMethod(3);" style="width:30px;height:30px;background-image:url('images/icona27.jpg');display:none;" title="Delete"></button>
+				<br/>
+			<tr/>
+			<tr>
+				<td>
+					<div id="header1" style="background-image:url('');">
+				<td/>
+				<td>
+					<div style="width:180px;height:150px;overflow-x:auto;overflow-y:auto;opacity:0.8;background-color:#DDDDDD;">
+						Words:<br/>
+						&nbsp;1.<input id="name1" type="text" size="16" onfocus="autoSelect(1);" onblur="" onchange="if(value=='')removeElement(1);if(words[1]=='')changeTotal(1);setName();"><br/>
+						&nbsp;2.<input id="name2" type="text" size="16" onfocus="autoSelect(2);" onblur="" onchange="if(value=='')removeElement(2);if(words[2]=='')changeTotal(1);setName();"><br/>
+						&nbsp;3.<input id="name3" type="text" size="16" onfocus="autoSelect(3);" onblur="" onchange="if(value=='')removeElement(3);if(words[3]=='')changeTotal(1);setName();"><br/>
+						&nbsp;4.<input id="name4" type="text" size="16" onfocus="autoSelect(4);" onblur="" onchange="if(value=='')removeElement(4);if(words[4]=='')changeTotal(1);setName();"><br/>
+						&nbsp;5.<input id="name5" type="text" size="16" onfocus="autoSelect(5);" onblur="" onchange="if(value=='')removeElement(5);if(words[5]=='')changeTotal(1);setName();"><br/>
+						&nbsp;6.<input id="name6" type="text" size="16" onfocus="autoSelect(6);" onblur="" onchange="if(value=='')removeElement(6);if(words[6]=='')changeTotal(1);setName();"><br/>
+						&nbsp;7.<input id="name7" type="text" size="16" onfocus="autoSelect(7);" onblur="" onchange="if(value=='')removeElement(7);if(words[7]=='')changeTotal(1);setName();"><br/>
+						&nbsp;8.<input id="name8" type="text" size="16" onfocus="autoSelect(8);" onblur="" onchange="if(value=='')removeElement(8);if(words[8]=='')changeTotal(1);setName();"><br/>
+						&nbsp;9.<input id="name9" type="text" size="16" onfocus="autoSelect(9);" onblur="" onchange="if(value=='')removeElement(9);if(words[9]=='')changeTotal(1);setName();"><br/>
+						10.<input id="namea" type="text" size="16" onfocus="autoSelect(10);" onblur="" onchange="if(value=='')removeElement(10);if(words[10]=='')changeTotal(1);setName();"><br/>
+						11.<input id="nameb" type="text" size="16" onfocus="autoSelect(11);" onblur="" onchange="if(value=='')removeElement(11);if(words[11]=='')changeTotal(1);setName();"><br/>
+						12.<input id="namec" type="text" size="16" onfocus="autoSelect(12);" onblur="" onchange="if(value=='')removeElement(12);if(words[12]=='')changeTotal(1);setName();"><br/>
+						13.<input id="named" type="text" size="16" onfocus="autoSelect(13);" onblur="" onchange="if(value=='')removeElement(13);if(words[13]=='')changeTotal(1);setName();"><br/>
+						14.<input id="namee" type="text" size="16" onfocus="autoSelect(14);" onblur="" onchange="if(value=='')removeElement(14);if(words[14]=='')changeTotal(1);setName();"><br/>
+						15.<input id="namef" type="text" size="16" onfocus="autoSelect(15);" onblur="" onchange="if(value=='')removeElement(15);if(words[15]=='')changeTotal(1);setName();"><br/>
+						16.<input id="nameg" type="text" size="16" onfocus="autoSelect(16);" onblur="" onchange="if(value=='')removeElement(16);if(words[16]=='')changeTotal(1);setName();"><br/>
+						17.<input id="nameh" type="text" size="16" onfocus="autoSelect(17);" onblur="" onchange="if(value=='')removeElement(17);if(words[17]=='')changeTotal(1);setName();"><br/>
+						18.<input id="namei" type="text" size="16" onfocus="autoSelect(18);" onblur="" onchange="if(value=='')removeElement(18);if(words[18]=='')changeTotal(1);setName();"><br/>
+						19.<input id="namej" type="text" size="16" onfocus="autoSelect(19);" onblur="" onchange="if(value=='')removeElement(19);if(words[19]=='')changeTotal(1);setName();"><br/>
+						20.<input id="namek" type="text" size="16" onfocus="autoSelect(20);" onblur="" onchange="if(value=='')removeElement(20);if(words[20]=='')changeTotal(1);setName();"><br/>
+						21.<input id="namel" type="text" size="16" onfocus="autoSelect(21);" onblur="" onchange="if(value=='')removeElement(21);if(words[21]=='')changeTotal(1);setName();"><br/>
+						22.<input id="namem" type="text" size="16" onfocus="autoSelect(22);" onblur="" onchange="if(value=='')removeElement(22);if(words[22]=='')changeTotal(1);setName();"><br/>
+						23.<input id="namen" type="text" size="16" onfocus="autoSelect(23);" onblur="" onchange="if(value=='')removeElement(23);if(words[23]=='')changeTotal(1);setName();"><br/>
+						24.<input id="nameo" type="text" size="16" onfocus="autoSelect(24);" onblur="" onchange="if(value=='')removeElement(24);if(words[24]=='')changeTotal(1);setName();"><br/>
+						25.<input id="namep" type="text" size="16" onfocus="autoSelect(25);" onblur="" onchange="if(value=='')removeElement(25);if(words[25]=='')changeTotal(1);setName();"><br/>
+						26.<input id="nameq" type="text" size="16" onfocus="autoSelect(26);" onblur="" onchange="if(value=='')removeElement(26);if(words[26]=='')changeTotal(1);setName();"><br/>
+						27.<input id="namer" type="text" size="16" onfocus="autoSelect(27);" onblur="" onchange="if(value=='')removeElement(27);if(words[27]=='')changeTotal(1);setName();"><br/>
+						28.<input id="names" type="text" size="16" onfocus="autoSelect(28);" onblur="" onchange="if(value=='')removeElement(28);if(words[28]=='')changeTotal(1);setName();"><br/>
+						29.<input id="namet" type="text" size="16" onfocus="autoSelect(29);" onblur="" onchange="if(value=='')removeElement(29);if(words[29]=='')changeTotal(1);setName();"><br/>
+						30.<input id="nameu" type="text" size="16" onfocus="autoSelect(30);" onblur="" onchange="if(value=='')removeElement(30);if(words[30]=='')changeTotal(1);setName();"><br/>
+						31.<input id="namev" type="text" size="16" onfocus="autoSelect(31);" onblur="" onchange="if(value=='')removeElement(31);if(words[31]=='')changeTotal(1);setName();"><br/>
+						32.<input id="namew" type="text" size="16" onfocus="autoSelect(32);" onblur="" onchange="if(value=='')removeElement(32);if(words[32]=='')changeTotal(1);setName();"><br/>
+						33.<input id="namex" type="text" size="16" onfocus="autoSelect(33);" onblur="" onchange="if(value=='')removeElement(33);if(words[33]=='')changeTotal(1);setName();"><br/>
+						34.<input id="namey" type="text" size="16" onfocus="autoSelect(34);" onblur="" onchange="if(value=='')removeElement(34);if(words[34]=='')changeTotal(1);setName();"><br/>
+						35.<input id="namez" type="text" size="16" onfocus="autoSelect(35);" onblur="" onchange="if(value=='')removeElement(35);if(words[35]=='')changeTotal(1);setName();"><br/>
+						36.<input id="name0" type="text" size="16" onfocus="autoSelect(36);" onblur="" onchange="if(value=='')removeElement(36);if(words[36]=='')changeTotal(1);setName();"><br/>
+					<div/>
+				<td/>
+				<td>
+					<div style="line-height:150%;width:260px;height:150px;overflow-x:auto;overflow-y:auto;opacity:0.8;background-color:#DDDDDD;">
+						<table width="240">
+						<tr>
+							<th width="90" style="line-height:175%;">
+								Graphlets<br/>
+								<img src="images/graphlet3.jpg" title="3-node graphlets"><img/> 3-node
+								<img src="images/graphlet01.jpg" title="(3)chain"><img/>
+								<input id="graphlet01" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet02.jpg" title="(3)triangle"><img/>
+								<input id="graphlet02" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet4.jpg" title="4-node graphlets"><img/> 4-node<br/>
+								<img src="images/graphlet03.jpg" title="(4)chain"><img/>
+								<input id="graphlet03" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet04.jpg" title='(4)trigonal planar'><img/>
+								<input id="graphlet04" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet05.jpg" title="(4)rectangle"><img/>
+								<input id="graphlet05" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet06.jpg" title="(4)tie"><img/>
+								<input id="graphlet06" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet07.jpg" title="(4)compass"><img/>
+								<input id="graphlet07" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet08.jpg" title="(4)Mercedes Benz"><img/>
+								<input id="graphlet08" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet5.jpg" title="5-node graphlets"><img/> 5-node<br/>
+								<img src="images/graphlet09.jpg" title="(5)chain"><img/>
+								<input id="graphlet09" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet10.jpg" title="(5)Y"><img/>
+								<input id="graphlet10" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet11.jpg" title="(5)cross"><img/>
+								<input id="graphlet11" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet12.jpg" title="(5)plug"><img/>
+								<input id="graphlet12" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet13.jpg" title="(5)long tie"><img/>
+								<input id="graphlet13" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet14.jpg" title="(5)android"><img/>
+								<input id="graphlet14" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet15.jpg" title="(5)pentagon"><img/>
+								<input id="graphlet15" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet16.jpg" title="(5)pike"><img/>
+								<input id="graphlet16" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet17.jpg" title="(5)leaf"><img/>
+								<input id="graphlet17" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet18.jpg" title="(5)butterfly"><img/>
+								<input id="graphlet18" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet19.jpg" title="(5)bazooka"><img/>
+								<input id="graphlet19" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet20.jpg" title="(5)six o'clock"><img/>
+								<input id="graphlet20" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet21.jpg" title="(5)house"><img/>
+								<input id="graphlet21" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet22.jpg" title="(5)ice-cream"><img/>
+								<input id="graphlet22" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet23.jpg" title="(5)kite"><img/>
+								<input id="graphlet23" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet24.jpg" title="(5)trapezoid"><img/>
+								<input id="graphlet24" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet25.jpg" title="(5)mouse"><img/>
+								<input id="graphlet25" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet26.jpg" title="(5)compass pyramid"><img/>
+								<input id="graphlet26" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet27.jpg" title="(5)checkbox"><img/>
+								<input id="graphlet27" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet28.jpg" title="(5)checkbox pyramid"><img/>
+								<input id="graphlet28" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet29.jpg" title="(5)us army"><img/>
+								<input id="graphlet29" type="text" readonly="readonly" size="2"><br/>
+							</th>
+							<th width="60" style="line-height:180%;">
+								<input id="graphletP" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP3" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP01" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP02" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP4" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP03" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP04" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP05" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP06" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP07" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP08" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP5" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP09" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP10" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP11" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP12" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP13" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP14" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP15" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP16" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP17" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP18" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP19" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP20" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP21" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP22" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP23" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP24" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP25" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP26" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP27" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP28" type="text" readonly="readonly" size="1.6"> <br/>
+								<input id="graphletP29" type="text" readonly="readonly" size="1.6"> <br/>
+							</th>
+							<th width="90" style="line-height:175%;">
+								Criterion<br/>
+								<img src="images/graphlet3.jpg" title="3-node graphlets"><img/> 3-node<br/>
+								<img src="images/graphlet01.jpg" title="(3)chain"><img/>
+								<input id="graphletA01" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet02.jpg" title="(3)triangle"><img/>
+								<input id="graphletA02" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet4.jpg" title="4-node graphlets"><img/> 4-node<br/>
+								<img src="images/graphlet03.jpg" title="(4)chain"><img/>
+								<input id="graphletA03" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet04.jpg" title='(4)trigonal planar'><img/>
+								<input id="graphletA04" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet05.jpg" title="(4)rectangle"><img/>
+								<input id="graphletA05" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet06.jpg" title="(4)tie"><img/>
+								<input id="graphletA06" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet07.jpg" title="(4)compass"><img/>
+								<input id="graphletA07" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet08.jpg" title="(4)Mercedes Benz"><img/>
+								<input id="graphletA08" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet5.jpg" title="5-node graphlets"><img/> 5-node<br/>
+								<img src="images/graphlet09.jpg" title="(5)chain"><img/>
+								<input id="graphletA09" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet10.jpg" title="(5)Y"><img/>
+								<input id="graphletA10" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet11.jpg" title="(5)cross"><img/>
+								<input id="graphletA11" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet12.jpg" title="(5)plug"><img/>
+								<input id="graphletA12" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet13.jpg" title="(5)long tie"><img/>
+								<input id="graphletA13" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet14.jpg" title="(5)android"><img/>
+								<input id="graphletA14" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet15.jpg" title="(5)pentagon"><img/>
+								<input id="graphletA15" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet16.jpg" title="(5)pike"><img/>
+								<input id="graphletA16" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet17.jpg" title="(5)leaf"><img/>
+								<input id="graphletA17" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet18.jpg" title="(5)butterfly"><img/>
+								<input id="graphletA18" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet19.jpg" title="(5)bazooka"><img/>
+								<input id="graphletA19" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet20.jpg" title="(5)six o'clock"><img/>
+								<input id="graphletA20" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet21.jpg" title="(5)house"><img/>
+								<input id="graphletA21" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet22.jpg" title="(5)ice-cream"><img/>
+								<input id="graphletA22" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet23.jpg" title="(5)kite"><img/>
+								<input id="graphletA23" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet24.jpg" title="(5)trapezoid"><img/>
+								<input id="graphletA24" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet25.jpg" title="(5)mouse"><img/>
+								<input id="graphletA25" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet26.jpg" title="(5)compass pyramid"><img/>
+								<input id="graphletA26" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet27.jpg" title="(5)checkbox"><img/>
+								<input id="graphletA27" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet28.jpg" title="(5)checkbox pyramid"><img/>
+								<input id="graphletA28" type="text" readonly="readonly" size="2"><br/>
+								<img src="images/graphlet29.jpg" title="(5)us army"><img/>
+								<input id="graphletA29" type="text" readonly="readonly" size="2">
+							</th>
+						</tr>
+						</table>
+					<div/>
+				<td/>
+				<td>
+					<div style="width:180px;height:150px;overflow-x:auto;overflow-y:auto;opacity:0.8;background-color:#DDDDDD;">
+						Criterion:<br/>
+						&nbsp;1.<input id="nameA1" type="text" size="16" onfocus="autoSelect(1);" onblur="" onchange="if(value=='')removeElement(1);if(words[1]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;2.<input id="nameA2" type="text" size="16" onfocus="autoSelect(2);" onblur="" onchange="if(value=='')removeElement(2);if(words[2]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;3.<input id="nameA3" type="text" size="16" onfocus="autoSelect(3);" onblur="" onchange="if(value=='')removeElement(3);if(words[3]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;4.<input id="nameA4" type="text" size="16" onfocus="autoSelect(4);" onblur="" onchange="if(value=='')removeElement(4);if(words[4]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;5.<input id="nameA5" type="text" size="16" onfocus="autoSelect(5);" onblur="" onchange="if(value=='')removeElement(5);if(words[5]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;6.<input id="nameA6" type="text" size="16" onfocus="autoSelect(6);" onblur="" onchange="if(value=='')removeElement(6);if(words[6]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;7.<input id="nameA7" type="text" size="16" onfocus="autoSelect(7);" onblur="" onchange="if(value=='')removeElement(7);if(words[7]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;8.<input id="nameA8" type="text" size="16" onfocus="autoSelect(8);" onblur="" onchange="if(value=='')removeElement(8);if(words[8]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						&nbsp;9.<input id="nameA9" type="text" size="16" onfocus="autoSelect(9);" onblur="" onchange="if(value=='')removeElement(9);if(words[9]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						10.<input id="nameAa" type="text" size="16" onfocus="autoSelect(10);" onblur="" onchange="if(value=='')removeElement(10);if(words[10]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						11.<input id="nameAb" type="text" size="16" onfocus="autoSelect(11);" onblur="" onchange="if(value=='')removeElement(11);if(words[11]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						12.<input id="nameAc" type="text" size="16" onfocus="autoSelect(12);" onblur="" onchange="if(value=='')removeElement(12);if(words[12]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						13.<input id="nameAd" type="text" size="16" onfocus="autoSelect(13);" onblur="" onchange="if(value=='')removeElement(13);if(words[13]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						14.<input id="nameAe" type="text" size="16" onfocus="autoSelect(14);" onblur="" onchange="if(value=='')removeElement(14);if(words[14]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						15.<input id="nameAf" type="text" size="16" onfocus="autoSelect(15);" onblur="" onchange="if(value=='')removeElement(15);if(words[15]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						16.<input id="nameAg" type="text" size="16" onfocus="autoSelect(16);" onblur="" onchange="if(value=='')removeElement(16);if(words[16]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						17.<input id="nameAh" type="text" size="16" onfocus="autoSelect(17);" onblur="" onchange="if(value=='')removeElement(17);if(words[17]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						18.<input id="nameAi" type="text" size="16" onfocus="autoSelect(18);" onblur="" onchange="if(value=='')removeElement(18);if(words[18]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						19.<input id="nameAj" type="text" size="16" onfocus="autoSelect(19);" onblur="" onchange="if(value=='')removeElement(19);if(words[19]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						20.<input id="nameAk" type="text" size="16" onfocus="autoSelect(20);" onblur="" onchange="if(value=='')removeElement(20);if(words[20]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						21.<input id="nameAl" type="text" size="16" onfocus="autoSelect(21);" onblur="" onchange="if(value=='')removeElement(21);if(words[21]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						22.<input id="nameAm" type="text" size="16" onfocus="autoSelect(22);" onblur="" onchange="if(value=='')removeElement(22);if(words[22]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						23.<input id="nameAn" type="text" size="16" onfocus="autoSelect(23);" onblur="" onchange="if(value=='')removeElement(23);if(words[23]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						24.<input id="nameAo" type="text" size="16" onfocus="autoSelect(24);" onblur="" onchange="if(value=='')removeElement(24);if(words[24]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						25.<input id="nameAp" type="text" size="16" onfocus="autoSelect(25);" onblur="" onchange="if(value=='')removeElement(25);if(words[25]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						26.<input id="nameAq" type="text" size="16" onfocus="autoSelect(26);" onblur="" onchange="if(value=='')removeElement(26);if(words[26]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						27.<input id="nameAr" type="text" size="16" onfocus="autoSelect(27);" onblur="" onchange="if(value=='')removeElement(27);if(words[27]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						28.<input id="nameAs" type="text" size="16" onfocus="autoSelect(28);" onblur="" onchange="if(value=='')removeElement(28);if(words[28]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						29.<input id="nameAt" type="text" size="16" onfocus="autoSelect(29);" onblur="" onchange="if(value=='')removeElement(29);if(words[29]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						30.<input id="nameAu" type="text" size="16" onfocus="autoSelect(30);" onblur="" onchange="if(value=='')removeElement(30);if(words[30]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						31.<input id="nameAv" type="text" size="16" onfocus="autoSelect(31);" onblur="" onchange="if(value=='')removeElement(31);if(words[31]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						32.<input id="nameAw" type="text" size="16" onfocus="autoSelect(32);" onblur="" onchange="if(value=='')removeElement(32);if(words[32]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						33.<input id="nameAx" type="text" size="16" onfocus="autoSelect(33);" onblur="" onchange="if(value=='')removeElement(33);if(words[33]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						34.<input id="nameAy" type="text" size="16" onfocus="autoSelect(34);" onblur="" onchange="if(value=='')removeElement(34);if(words[34]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						35.<input id="nameAz" type="text" size="16" onfocus="autoSelect(35);" onblur="" onchange="if(value=='')removeElement(35);if(words[35]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+						36.<input id="nameA0" type="text" size="16" onfocus="autoSelect(36);" onblur="" onchange="if(value=='')removeElement(36);if(words[36]=='')changeTotal(1);setName();" readonly="readonly"><br/>
+					<div/>
+				<td/>
+				<td>
+					<textarea id="text01" rows="10" cols="48" style="opacity:0.6;font-size:50%;" readonly="readonly" value=""></textarea>
+				<td/>
+			<tr/>
+			<table/>
+			<div/>
+		</div>
+		<div id="header4">
+			&nbsp;Total
+			<input id="getTotal" type="text" readonly="readonly" size="2">
+			&nbsp;Density
+			<input id="getDensity" type="text" readonly="readonly" size="2">
+			&nbsp;Average Degree
+			<input id="getAD" type="text" readonly="readonly" size="2">
+			&nbsp;RGF-Distance
+			<input id="getRGFD" type="text" readonly="readonly" size="2">
+		</div>
+		<script type="text/javascript">	
+			//This useless method must be erased. The new window shall be blocked by the Internet browser.
+			//loginWindow();
+			total=0;
+			for (var i = 0; i <= total; i++) {
+				initialCoordinate(i);
+			}
+			mainCanvas=document.createElement("canvas");
+			mainCanvas.width=MAIN_CANVAS_WIDTH;
+			mainCanvas.height=MAIN_CANVAS_HEIGHT;
+			document.body.appendChild(mainCanvas);
+			mainCanvas.onmousedown=canvasMouseDownHandler;
+			mainCanvas.onmouseup=canvasMouseUpHandler;
+			//mainCanvas.ondblclick=canvasDoubleClick;
+			mainCt=mainCanvas.getContext("2d");
+			setName();
+			drawAll();
+		</script>	
+	</body>
+</html>
